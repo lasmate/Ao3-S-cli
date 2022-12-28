@@ -9,6 +9,7 @@ A small personal project to practice scraping and make a little tool to easely r
 **those will be set for myself and are subject to change**
 
 ### first goals
+
 - [90%] main menu works
 - [80%] search_author function works
 - [0%] search_tag function works
