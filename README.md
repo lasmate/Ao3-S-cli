@@ -11,7 +11,8 @@ A small personal project to practice scraping and make a little tool to easely r
 ### first goals
 
 - [90%] main menu works
-- [80%] search_author function works
+- [90%] search_author function works
+- -[30%] select_work(from author)
 - [0%] search_tag function works
 - [20%] search_work function works
 - [20%] chapter_select function works
@@ -36,7 +37,7 @@ A small personal project to practice scraping and make a little tool to easely r
 
 - **(R/DL)submenu should have those working options** :
 
->- - [ ] search for a fic and chapter directly(chapter will alwys start at 1)(implementing a history of read chapters for each fic would be nice)
+>- - [ ] search for a fic and chapter directly(chapter will always start at 1)(implementing a history of read chapters for each fic would be nice)
 >- - [ ] browse for a fic->chapter
 >- - [ ] browse for tag->fic->chapter
 >- - [ ] browse for author->fic->chapter
