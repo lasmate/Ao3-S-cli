@@ -10,18 +10,18 @@ A small personal project to practice scraping and make a little tool to easely r
 
 ### first goals
 
-- [90%] main menu works
-- [90%] search_author function works
-- -[30%] select_work(from author)
-- [0%] search_tag function works
-- [20%] search_work function works
+- [x] main menu works
+- [x] search_author function works
+- [30%] select_work(from author)
+- [30%] search_tag function works
+- [50%] search_work function works
 - [20%] chapter_select function works
 - [0%] resume_chapter function works
 - [0%] next_chapter function works
 - [0%] previous_chapter function works
 - [0%] download_chapter function works
 - [0%] download_full_work function works
-- 
+  
 ### Final goals
 
 - [ ] make a working scraper for the website
