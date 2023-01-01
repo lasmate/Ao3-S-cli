@@ -10,7 +10,7 @@ search_author(){ #searches list of author
     echo "input author name"
     read -p ":: " author_name
     author_list_untreated=$(curl https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') #gets list of authors and removes any duplicates and puts them in a list
-    author_list_treated=$(echo $author_list_untreated | sed 's/users/\//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') #removes any unwanted strings from the list
+    author_list_treated=$(echo $author_list_untreated | sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') #removes any unwanted strings from the list
         echo "select author"
         inc=1 # cut -d ' ' -f 0 is the first element(empty in this case) in the list so the first element is 1
         for i in $author_list_treated; do #iterates through the list
