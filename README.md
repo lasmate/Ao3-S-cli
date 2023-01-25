@@ -14,7 +14,8 @@ A small personal project to practice scraping and make a little tool to easely r
 - [x] search_author function works
 - [30%] select_work(from author)
 - [30%] search_tag function works
-- [50%] search_work function works
+- [70%] select_work function works
+- [0%] search_work function works
 - [20%] chapter_select function works
 - [0%] resume_chapter function works
 - [0%] next_chapter function works
@@ -25,6 +26,7 @@ A small personal project to practice scraping and make a little tool to easely r
 ### Final goals
 
 - [ ] make a working scraper for the website
+- [ ] refactor an add a central menu functin to make it easier to add new features and streamline the code
 - [ ] use as little dependencies as possible
 - [ ] make it as posix compliant as possible
 - [ ] make it easy to use for any OS
