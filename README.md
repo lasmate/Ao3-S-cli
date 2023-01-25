@@ -2,7 +2,7 @@
 
 ## Description
 
-A small personal project to practice scraping and make a little tool to easely read fanfictions from the website Ao3 in the cli
+A small personal project to practice scraping and make a little tool to easely read fanfictions from the website [Ao3](https://archiveofourown.org/) in the cli
 
 ## Basic plans and guidelines
 
@@ -17,7 +17,9 @@ A small personal project to practice scraping and make a little tool to easely r
 - [70%] select_work function works
 - [0%] search_work function works
 - [20%] chapter_select function works
+- [0%] if oneshot , skips chapter menu
 - [0%] resume_chapter function works
+- [0%] read_chapter function works
 - [0%] next_chapter function works
 - [0%] previous_chapter function works
 - [0%] download_chapter function works
@@ -42,5 +44,5 @@ A small personal project to practice scraping and make a little tool to easely r
 >- - [ ] search for a fic and chapter directly(chapter will always start at 1)(implementing a history of read chapters for each fic would be nice)
 >- - [ ] browse for a fic->chapter
 >- - [ ] browse for tag->fic->chapter
->- - [ ] browse for author->fic->chapter
+>- - [50%] browse for author->fic->chapter
 >- - [ ] browse for fandom->fic->chapter
