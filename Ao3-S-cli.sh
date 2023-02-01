@@ -34,10 +34,9 @@ search_tag(){
 search_author(){ #functional
     echo "input author name"
     read -p ":: " author_name
-    author_list_untreated=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') #gets list of authors and removes any duplicates and puts them in a list
-    author_list_treated=$(echo $author_list_untreated | sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') #removes any unwanted strings from the list
-        echo "select author"
-        inc=1 # cut -d ' ' -f 0 is the first element(empty in this case) in the list so the first element is 1
+    author_list_untreated=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') 
+    author_list_treated=$(echo $author_list_untreated | sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') 
+        inc=1 
         for i in $author_list_treated; do #iterates through the list
             echo $inc,$i
             inc=$((inc+1))
@@ -50,12 +49,12 @@ search_author(){ #functional
                 echo "invalid input"
             else
                 author_id=$(echo $author_list_treated | cut -d ' ' -f $arg)
-                select_work $author_id 
-                
+                select_work $author_id                 
             fi
-        done
-    
+            
+        done  
 }
+
 search_work(){ # if have the feeling having a separate function to search only works might be very useless butg a refactor seems dumb until most othe funcs are coded AND work 
     #pretty complicated for now doing that shit later 
     # for some reason ( me being dumb) grep shows no output when i use it to get the list of works 
@@ -73,7 +72,7 @@ select_work(){ #functional
     for i in $work_list_treated; do 
         #curl the name of the work fro mthe corresponging id and echo it         
         work_name_temp=$(curl -s https://archiveofourown.org/works/$i | grep -oP '<a href="/works/[0-9]+">[\s\S]+</a>' | sed 's/<a href="\/works//g' | sed 's/<\/a>//g'|tr '">' ' ')
-        echo $inc70 $work_name_temp
+        echo $inc $work_name_temp
         inc=$((inc+1))
     done
     echo "select the work"
@@ -87,40 +86,32 @@ select_work(){ #functional
             select_chapter $work_id
         fi
     done
-
 }
 
-#<ol class="chapter index group" role="navigation">
-#  <li><a href="/works/41540862/chapters/104187087">1. From Bad to Worse</a> <span class="datetime">(2022-09-06)</span></li>
-#  <li><a href="/works/41540862/chapters/104558541">2. Opening Gifts, Opening Hearts</a> <span class="datetime">(2022-09-13)</span></li>
-#  <li><a href="/works/41540862/chapters/104697498">3. Use Me</a> <span class="datetime">(2022-09-16)</span></li>
-#  <li><a href="/works/41540862/chapters/104767224">4. 'til the moon sets</a> <span class="datetime">(2022-09-17)</span></li>
-#  <li><a href="/works/41540862/chapters/105586959">5. Blooming</a> <span class="datetime">(2022-10-01)</span></li>
-#  <li><a href="/works/41540862/chapters/107712015">6. Being Honest</a> <span class="datetime">(2022-11-05)</span></li>
-#  <li><a href="/works/41540862/chapters/107741517">7. Sweet Nectar</a> <span class="datetime">(2022-11-06)</span></li>
-#  <li><a href="/works/41540862/chapters/109903848">8. Our Love, Our Rules</a> <span class="datetime">(2022-12-19)</span></li>
-#  <li><a href="/works/41540862/chapters/111026731">9. Helping out a Homie</a> <span class="datetime">(2023-01-09)</span></li>
-#  <li><a href="/works/41540862/chapters/112457776">10. Slipping</a> <span class="datetime">(2023-02-01)</span></li>
-#</ol>
-
-select_chapter(){
+select_chapter(){ # bloated BUT FUCKING WORKS LETSFUCKINGOOOOOOOOOW
+# correction its FUCKING bloated bur it works
     work_id=$1
-    chapter_list_untreated=$(curl -s https://archiveofourown.org/works/41540862/navigate|grep -Eoi '<li><a href="/works/[0-9]+/chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g')
-    chapter_list_treated=$(echo $chapter_list_untreated | sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | sed 's/works//g' |sed 's/\/$work_id\/\///g'|| tr '">' ' '| tr '.' ' ' )
-    chapter_list_display=[] #displays everything but lines by lines u have to treat that shit 
+    chapter_list_id=$(curl -s https://archiveofourown.org/works/41540862/navigate |grep -Eoi 'chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g'| sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | tr '">' ' '| cut -d ' ' -f 1 | tr '\n' ' ' |sed 's/\///g')
+    chapter_list_names=$(curl -s https://archiveofourown.org/works/41540862/navigate |grep -Eoi 'chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g'| sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | tr '">' ' '| cut -d ' ' -f 4- | tr ' ' '_')
     
-    for i in range(0, len(chapter_list_treated), 2):
-        chapter_list_display.append(chapter_list_treated[i])
     inc=1
-    for i in $chapter_list_treated; do
-        echo $inc,$i
+    for i in $chapter_list_names; do
+        echo $inc $i
         inc=$((inc+1))
     done
-    
-    echo "type 'q' to quit"
+    echo " select chapter"
+    echo " type q to quit"
     read -p ":: " arg
+    while [ $arg != "q" ]; do
+        if [ $arg -gt $inc ]; then
+            echo "invalid input"
+        else
+            chapter_id=$(echo $chapter_list_id | cut -d ' ' -f $arg)
+            scrape_chapter $chapter_id $work_id
+        fi
+    done
 }
-#   the list is iterated with for i in $chapter_list; do curl https://archiveofourown.org/works/$story_id/chapters/$i | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain | less; done # less is a text viewer
+
 scrape_chapter(){ #scrapres content of the chapter redirects in into stdout and pipe into zathura
     chapter_content=$(curl https://archiveofourown.org/works/$story_id/chapters/$chapter_id | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain)
     echo $chapter_content | zathura - #zathura is a pdf viewer
@@ -147,17 +138,13 @@ echo "
 read -p ":: " arg
 case $arg in
     r)
-        resume
-        ;;
+        resume;;
     w)
-        search_work
-        ;;
+        search_work;;
     t) 
-        search_tag
-        ;;
+        search_tag;;
     a) 
-        search_author
-        ;;
+        search_author;;
     h)
         echo "availiable options : w,t,a,h,q"
         echo "-w : search for a story"
@@ -167,10 +154,7 @@ case $arg in
         ;;
     q)
         echo ""
-        exit 1
-        ;;
+        exit 1;;
     *)
-        echo "invalid input"
-        ;;
+        echo "invalid input";;
 esac
-
