@@ -31,7 +31,7 @@ search_tag(){
         done
     fi
 }
-search_author(){ #searches list of author
+search_author(){ #functional
     echo "input author name"
     read -p ":: " author_name
     author_list_untreated=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') #gets list of authors and removes any duplicates and puts them in a list
@@ -42,7 +42,7 @@ search_author(){ #searches list of author
             echo $inc,$i
             inc=$((inc+1))
         done
-        echo "type the corresponding number to browse the authors work"
+        echo "select author"
         echo "type 'q' to quit"
         read -p ":: " arg
         while [ $arg != "q" ]; do
@@ -62,48 +62,62 @@ search_work(){ # if have the feeling having a separate function to search only w
     echo "input work name"
     read -p ":: " work_name
 
-    }
+}
 
-select_work(){
+select_work(){# functional
     work_list_untreated=$(curl -s https://archiveofourown.org/users/$author_id/works | grep -Eoi '"/works[^\"]+/')
     work_list_treated=$( echo $work_list_untreated | sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ' |sed 's/chapters//g' |sed 's/works//g')
     # transform this into a simple increment based menu bc typing +8 numbers is realy nt user friendly 
-    # should work for now tho 
+    # should work for now tho
+    inc=1
     for i in $work_list_treated; do 
         #curl the name of the work fro mthe corresponging id and echo it         
-        work_name_temp=$(curl -s https://archiveofourown.org/works/$i | grep -oP '<a href="/works/[0-9]+">[\s\S]+</a>' | sed 's/<a href="\/works//g' | sed 's/<\/a>//g')
-        echo $i, $work_name_temp
+        work_name_temp=$(curl -s https://archiveofourown.org/works/$i | grep -oP '<a href="/works/[0-9]+">[\s\S]+</a>' | sed 's/<a href="\/works//g' | sed 's/<\/a>//g'|tr '">' ' ')
+        echo $inc70 $work_name_temp
+        inc=$((inc+1))
     done
-    echo "type the corresponding number to browse the work"
+    echo "select the work"
     echo "type 'q' to quit"
     read -p ":: " arg
     while [ $arg != "q" ]; do
-        if [ $arg in work_list_treated ]; then
-            work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
-            chapter_select
-        else
+        if [ $arg -gt $inc ]; then
             echo "invalid input"
+        else
+            work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
+            select_chapter $work_id
         fi
     done
 
 }
 
+
+select_chapter(){
+    work_id=$1
+    chapter_list= curl https://archiveofourown.org/works/$story_id/navigate | grep -oP '(?<=<li><a href="/works/)[0-9]+(?=/chapters/)[0-9]+(?=">)[0-9]+(?=</a></li>)') #gets list of chapters and removes any duplicates and puts them in a list
+    echo "select chapter"
+    echo "type 'q' to quit"
+    read -p ":: " arg
+    while [ $arg != "q" ]; do
+        if [ $arg -gt $inc ]; then
+            echo "invalid input"
+        else
+            chapter_id=$(echo $chapter_list | cut -d ' ' -f $arg)
+            scrape_chapter $chapter_id $story_id
+        fi
+    done
+}
+#   the list is iterated with for i in $chapter_list; do curl https://archiveofourown.org/works/$story_id/chapters/$i | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain | less; done # less is a text viewer
+scrape_chapter(){ #scrapres content of the chapter redirects in into stdout and pipe into zathura
+    chapter_content=$(curl https://archiveofourown.org/works/$story_id/chapters/$chapter_id | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain)
+    echo $chapter_content | zathura - #zathura is a pdf viewer
+    
+}
 resume_chapter(){
     #in construction 
     #resumes chapter and works from hist file
     echo "resuming last chapter"
     chapter_id=$(cat hist | grep -oP '(?<=chapter_id:)[0-9]+')
     story_id=$(cat hist | grep -oP '(?<=story_id:)[0-9]+')
-    
-}
-chapter_select(){
-    chapter_list= curl https://archiveofourown.org/works/$story_id/navigate | grep -oP '(?<=<li><a href="/works/)[0-9]+(?=/chapters/)[0-9]+(?=">)[0-9]+(?=</a></li>)' 
-
-}
-#   the list is iterated with for i in $chapter_list; do curl https://archiveofourown.org/works/$story_id/chapters/$i | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain | less; done # less is a text viewer
-scrape_chapter(){ #scrapres content of the chapter redirects in into stdout and pipe into zathura
-    chapter_content=$(curl https://archiveofourown.org/works/$story_id/chapters/$chapter_id | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain)
-    echo $chapter_content | zathura - #zathura is a pdf viewer
     
 }
 echo "Ao3-S-cli"

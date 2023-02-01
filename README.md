@@ -11,13 +11,13 @@ A small personal project to practice scraping and make a little tool to easely r
 ### first goals
 
 - [x] main menu works
-- [x] search_author function works
-- [30%] select_work(from author)
-- [30%] search_tag function works
-- [70%] select_work function works
-- [0%] search_work function works
-- [20%] chapter_select function works
-- [0%] if oneshot , skips chapter menu
+- [x] search_author works
+- [x] select_work(from author)
+- [30%] search_tag works
+- [70%] select_work works
+- [0%] search_work works
+- [40%] chapter_select works
+- [0%] if oneshot , skips chapter menu 
 - [0%] resume_chapter function works
 - [0%] read_chapter function works
 - [0%] next_chapter function works
