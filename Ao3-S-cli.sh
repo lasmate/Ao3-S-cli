@@ -64,7 +64,7 @@ search_work(){ # if have the feeling having a separate function to search only w
 
 }
 
-select_work(){# functional
+select_work(){ #functional
     work_list_untreated=$(curl -s https://archiveofourown.org/users/$author_id/works | grep -Eoi '"/works[^\"]+/')
     work_list_treated=$( echo $work_list_untreated | sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ' |sed 's/chapters//g' |sed 's/works//g')
     # transform this into a simple increment based menu bc typing +8 numbers is realy nt user friendly 
@@ -90,21 +90,35 @@ select_work(){# functional
 
 }
 
+#<ol class="chapter index group" role="navigation">
+#  <li><a href="/works/41540862/chapters/104187087">1. From Bad to Worse</a> <span class="datetime">(2022-09-06)</span></li>
+#  <li><a href="/works/41540862/chapters/104558541">2. Opening Gifts, Opening Hearts</a> <span class="datetime">(2022-09-13)</span></li>
+#  <li><a href="/works/41540862/chapters/104697498">3. Use Me</a> <span class="datetime">(2022-09-16)</span></li>
+#  <li><a href="/works/41540862/chapters/104767224">4. 'til the moon sets</a> <span class="datetime">(2022-09-17)</span></li>
+#  <li><a href="/works/41540862/chapters/105586959">5. Blooming</a> <span class="datetime">(2022-10-01)</span></li>
+#  <li><a href="/works/41540862/chapters/107712015">6. Being Honest</a> <span class="datetime">(2022-11-05)</span></li>
+#  <li><a href="/works/41540862/chapters/107741517">7. Sweet Nectar</a> <span class="datetime">(2022-11-06)</span></li>
+#  <li><a href="/works/41540862/chapters/109903848">8. Our Love, Our Rules</a> <span class="datetime">(2022-12-19)</span></li>
+#  <li><a href="/works/41540862/chapters/111026731">9. Helping out a Homie</a> <span class="datetime">(2023-01-09)</span></li>
+#  <li><a href="/works/41540862/chapters/112457776">10. Slipping</a> <span class="datetime">(2023-02-01)</span></li>
+#</ol>
 
 select_chapter(){
     work_id=$1
-    chapter_list= curl https://archiveofourown.org/works/$story_id/navigate | grep -oP '(?<=<li><a href="/works/)[0-9]+(?=/chapters/)[0-9]+(?=">)[0-9]+(?=</a></li>)') #gets list of chapters and removes any duplicates and puts them in a list
-    echo "select chapter"
+    chapter_list_untreated=$(curl -s https://archiveofourown.org/works/41540862/navigate|grep -Eoi '<li><a href="/works/[0-9]+/chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g')
+    chapter_list_treated=$(echo $chapter_list_untreated | sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | sed 's/works//g' |sed 's/\/$work_id\/\///g'|| tr '">' ' '| tr '.' ' ' )
+    chapter_list_display=[] #displays everything but lines by lines u have to treat that shit 
+    
+    for i in range(0, len(chapter_list_treated), 2):
+        chapter_list_display.append(chapter_list_treated[i])
+    inc=1
+    for i in $chapter_list_treated; do
+        echo $inc,$i
+        inc=$((inc+1))
+    done
+    
     echo "type 'q' to quit"
     read -p ":: " arg
-    while [ $arg != "q" ]; do
-        if [ $arg -gt $inc ]; then
-            echo "invalid input"
-        else
-            chapter_id=$(echo $chapter_list | cut -d ' ' -f $arg)
-            scrape_chapter $chapter_id $story_id
-        fi
-    done
 }
 #   the list is iterated with for i in $chapter_list; do curl https://archiveofourown.org/works/$story_id/chapters/$i | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain | less; done # less is a text viewer
 scrape_chapter(){ #scrapres content of the chapter redirects in into stdout and pipe into zathura

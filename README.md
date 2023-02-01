@@ -16,7 +16,7 @@ A small personal project to practice scraping and make a little tool to easely r
 - [30%] search_tag works
 - [70%] select_work works
 - [0%] search_work works
-- [40%] chapter_select works
+- [70%] chapter_select works
 - [0%] if oneshot , skips chapter menu 
 - [0%] resume_chapter function works
 - [0%] read_chapter function works
