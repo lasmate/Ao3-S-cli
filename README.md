@@ -14,9 +14,9 @@ A small personal project to practice scraping and make a little tool to easely r
 - [x] search_author works
 - [x] select_work(from author)
 - [30%] search_tag works
-- [70%] select_work works
+- [90%] select_work works
+- [x] select_chapter works
 - [0%] search_work works
-- [70%] chapter_select works
 - [0%] if oneshot , skips chapter menu 
 - [0%] resume_chapter function works
 - [0%] read_chapter function works
@@ -44,5 +44,5 @@ A small personal project to practice scraping and make a little tool to easely r
 >- - [ ] search for a fic and chapter directly(chapter will always start at 1)(implementing a history of read chapters for each fic would be nice)
 >- - [ ] browse for a fic->chapter
 >- - [ ] browse for tag->fic->chapter
->- - [50%] browse for author->fic->chapter
+>- - [x] browse for author->fic->chapter
 >- - [ ] browse for fandom->fic->chapter
