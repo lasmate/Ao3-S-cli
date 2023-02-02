@@ -1,3 +1,5 @@
+#!/bin/sh
+
 menu_select(){ #creates a menu based on the function that calls it 
     #only for prototypyng/future use 
     echo "select $1"
@@ -79,8 +81,25 @@ select_work(){ #functional
         if [ $arg -gt $inc ]; then
             echo "invalid input"
         else
-            work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
-            select_chapter $work_id
+            echo "1.read 2.download 3.back"
+            read -p ":: " arg2
+            case $arg2 in
+                1)
+                    work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
+                    select_chapter $work_id
+                    ;;
+                2)
+                    work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
+                    dl_work $work_id
+                    ;;
+                3)
+                    search_author
+                    ;;
+                *)
+                    echo "invalid input"
+                    exit 1
+                    ;;
+            esac
         fi
     done
 }
@@ -102,14 +121,30 @@ select_chapter(){ #future me this is very redundant and bloated please find a wa
             echo "invalid input"
         else
             chapter_id=$(echo $chapter_list_id | cut -d ' ' -f $arg)
-            scrape_chapter $chapter_id $work_id
+            chapter_name=$(echo $chapter_list_names | cut -d ' ' -f $arg)
+            scrape_chapter $work_id $chapter_id $chapter_name
         fi
     done
 }
-scrape_chapter(){ #scrapres content of the chapter redirects in into stdout and pipe into zathura
-    chapter_content=$(curl https://archiveofourown.org/works/$story_id/chapters/$chapter_id | grep -oP '(?<=<div class="userstuff module">)[\s\S]+(?=</div>)' | pandoc -f html -t plain)
-    zathura - <(echo $chapter_content)
-    
+#/41540862
+dl_work(){ #functional bc of implemented dl method in the base website
+    work_id=$1
+    work_name_web=$(curl https://archiveofourown.org/works/$work_id | grep -oP 'ks/[0-9]+">[\s\S]+</a>' |sed 's/ks\///g'| sed 's/<\/a>//g' |sed -e 's/ /%20/g'|tr '">' ' ' | cut -d ' ' -f 2-)
+    echo $work_name_web
+    semilink="$work_id/$work_name_web"
+    echo $semilink
+    echo "downloading work"
+
+    wget https://archiveofourown.org/downloads/$semilink.pdf
+    exit 0
+}
+scrape_chapter(){ #non functionnal, requiresnuch more work to dl specific chapters and not the whole work
+    work_id=$1
+    chapter_id=$2
+    chapter_name=$3
+    chapter_name_web=$(echo $chapter_name |tr '_' '%20')
+    echo "scraping chapter $chapter_id"
+    wget -q https://archiveofourown.org/download/$work_id/$ -O chapter
 }
 resume_chapter(){
     #in construction 
@@ -151,6 +186,10 @@ while [ $arg != "q" ]; do
         q)
             echo ""
             exit 1;;
+        z)
+            echo "test"
+            dl_work 41540862
+            ;;
         *)
             echo "invalid input";;
     esac
