@@ -4,6 +4,9 @@
 
 A small personal project to practice scraping and make a little tool to easely read fanfictions from the website [Ao3](https://archiveofourown.org/) in the cli
 
+## Dependencies
+    curl    : to make the requests
+    aria2c  : to download the files
 ## Basic plans and guidelines
 
 **those will be set for myself and are subject to change**

@@ -132,10 +132,11 @@ dl_work(){ #functional bc of implemented dl method in the base website
     work_name_web=$(curl https://archiveofourown.org/works/$work_id | grep -oP 'ks/[0-9]+">[\s\S]+</a>' |sed 's/ks\///g'| sed 's/<\/a>//g' |sed -e 's/ /%20/g'|tr '">' ' ' | cut -d ' ' -f 2-)
     echo $work_name_web
     semilink="$work_id/$work_name_web"
+    semilink=$(echo $semilink | sed -e 's/ //g')
     echo $semilink
     echo "downloading work"
 
-    wget https://archiveofourown.org/downloads/$semilink.pdf
+    aria2c https://archiveofourown.org/downloads/$semilink.pdf
     exit 0
 }
 scrape_chapter(){ #non functionnal, requiresnuch more work to dl specific chapters and not the whole work
