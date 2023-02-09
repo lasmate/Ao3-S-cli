@@ -21,6 +21,17 @@ menu_select(){ #creates a menu based on the function that calls it
     done
 
 }
+###MINI FUNCTIONS###
+quit(){ #functional
+    echo "exiting"
+    exit 0
+}
+error(){ #functional
+    echo "invalid input"
+    exit 1
+}
+
+### SEARCH FUNCTIONS ###
 search_author(){ #functional
     echo "input author name"
     read -p ":: " author_name
@@ -36,7 +47,7 @@ search_author(){ #functional
         read -p ":: " arg
         while [ $arg != "q" ]; do
             if [ $arg -gt $inc ]; then
-                echo "invalid input"
+                error
             else
                 author_id=$(echo $author_list_treated | cut -d ' ' -f $arg)
                 select_work $author_id                 
@@ -44,7 +55,7 @@ search_author(){ #functional
             
         done  
 }
-search_tag(){
+search_tag(){ #non functional
     echo "input tag name"
     read -p ":: " tag_name
     tag_list_untreated=$(curl -s https://archiveofourown.org/tags/search?tag_search%5Bname%5D=$tag_name&tag_search%5Bsort_direction%5D=asc&commit=Search+Tags |grep -Eoi '"/works[^\"]+"') 
@@ -57,13 +68,14 @@ search_tag(){
         done
     fi
 }
-search_work(){ 
+search_work(){ #non functional
     # if have the feeling having a separate function to search only works might be very useless butg a refactor seems dumb until most othe funcs are coded AND work 
     echo "input work name"
     read -p ":: " work_name
 
 
 }
+### SELECT FUNCTIONS ###
 select_work(){ #functional
     work_list_untreated=$(curl -s https://archiveofourown.org/users/$author_id/works | grep -Eoi '"/works[^\"]+/')
     work_list_treated=$( echo $work_list_untreated | sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ' |sed 's/chapters//g' |sed 's/works//g')
@@ -79,7 +91,7 @@ select_work(){ #functional
     read -p ":: " arg
     while [ $arg != "q" ]; do
         if [ $arg -gt $inc ]; then
-            echo "invalid input"
+            error
         else
             echo "1.read 2.download 3.back"
             read -p ":: " arg2
@@ -96,8 +108,7 @@ select_work(){ #functional
                     search_author
                     ;;
                 *)
-                    echo "invalid input"
-                    exit 1
+                    error
                     ;;
             esac
         fi
@@ -118,7 +129,7 @@ select_chapter(){ #future me this is very redundant and bloated please find a wa
     read -p ":: " arg
     while [ $arg != "q" ]; do
         if [ $arg -gt $inc ]; then
-            echo "invalid input"
+            error
         else
             chapter_id=$(echo $chapter_list_id | cut -d ' ' -f $arg)
             chapter_name=$(echo $chapter_list_names | cut -d ' ' -f $arg)
@@ -126,7 +137,30 @@ select_chapter(){ #future me this is very redundant and bloated please find a wa
         fi
     done
 }
-#/41540862
+
+### menu functions ###
+chapter_resume(){
+    #in construction 
+    #resumes chapter and works from hist file
+    echo "resuming last chapter"
+}
+chapter_read(){
+    #in construction
+    #reads chapter of current work
+    echo "reading last chapter"
+}
+chapter_next(){
+    #in construction
+    #reads next chapter of current work
+    echo "reading next chapter"
+}
+chapter_previous(){
+    #in construction
+    #reads previous chapter of current work
+    echo "reading previous chapter"
+}
+
+### DOWNLOAD FUNCTIONS ###
 dl_work(){ #functional bc of implemented dl method in the base website
     work_id=$1
     work_name_web=$(curl https://archiveofourown.org/works/$work_id | grep -oP 'ks/[0-9]+">[\s\S]+</a>' |sed 's/ks\///g'| sed 's/<\/a>//g' |sed -e 's/ /%20/g'|tr '">' ' ' | cut -d ' ' -f 2-)
@@ -139,7 +173,7 @@ dl_work(){ #functional bc of implemented dl method in the base website
     aria2c https://archiveofourown.org/downloads/$semilink.pdf
     exit 0
 }
-scrape_chapter(){ #non functionnal, requiresnuch more work to dl specific chapters and not the whole work
+dl_chapter(){ #non functionnal, requiresnuch more work to dl specific chapters and not the whole work
     work_id=$1
     chapter_id=$2
     chapter_name=$3
@@ -147,14 +181,8 @@ scrape_chapter(){ #non functionnal, requiresnuch more work to dl specific chapte
     echo "scraping chapter $chapter_id"
     wget -q https://archiveofourown.org/download/$work_id/$ -O chapter
 }
-resume_chapter(){
-    #in construction 
-    #resumes chapter and works from hist file
-    echo "resuming last chapter"
-    chapter_id=$(cat hist | grep -oP '(?<=chapter_id:)[0-9]+')
-    story_id=$(cat hist | grep -oP '(?<=story_id:)[0-9]+')
-    
-}
+
+### START MENU ###
 echo "Ao3-S-cli"
 echo "
     ==========
@@ -187,7 +215,7 @@ while [ $arg != "q" ]; do
         q)
             echo ""
             exit 1;;
-        z)
+        z) # DLdebug
             echo "test"
             dl_work 41540862
             ;;

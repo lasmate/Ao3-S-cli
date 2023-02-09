@@ -21,12 +21,12 @@ A small personal project to practice scraping and make a little tool to easely r
 - [x] select_chapter works
 - [0%] search_work works
 - [0%] if oneshot , skips chapter menu 
-- [0%] resume_chapter function works
-- [0%] read_chapter function works
-- [0%] next_chapter function works
-- [0%] previous_chapter function works
-- [0%] download_chapter function works
-- [0%] download_full_work function works
+- [0%] chapter_resume function works
+- [0%] chapter_read function works
+- [0%] chapter_next function works
+- [0%] chapter_previous function works
+- [0%] dl_chapter function works
+- [0%] de_work function works
   
 ### Final goals
 
@@ -35,11 +35,11 @@ A small personal project to practice scraping and make a little tool to easely r
 - [ ] use as little dependencies as possible
 - [ ] make it as posix compliant as possible
 - [ ] make it easy to use for any OS
-- [ ] fzf option would be nice but not gonna work on it till the basic version is done
+- [ ] =>fzf option would be nice but not gonna work on it till the basic version is done
 - **front menu must have those working options** :
 
 >- - [ ] read a fic in terminal
->- - [ ] download a fic as either a txt or epub or pdf (might wanna use zatura for that)
+>- - [ ] download a fic as pdf
 >- - [ ] update the script
 
 - **(R/DL)submenu should have those working options** :
