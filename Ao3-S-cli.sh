@@ -22,24 +22,15 @@ quit(){ #functional
 search_author(){ #functional
     echo "input author name"
     read -p "> " author_name
-    author_list_untreated=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') 
-    author_list_treated=$(echo $author_list_untreated | sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') 
-    echo $author_list_treated $author_list_untreated
-    ans1=$(printf '%s\n' ${author_list_treated} | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle | awk '{printf $1}')    
-    select_work $ans1
-        while [ $arg != "q" ]; do
-            if [ $arg -gt $inc ]; then
-                 error j
-            else
-                author_id=$(echo $author_list_treated | cut -d ' ' -f $arg)
-                select_work $author_id                 
-            fi
-            
-        done  
+    author_list_raw=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"') 
+    author_list=$(echo $author_list_raw |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' '| sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') 
+    author_id=$(printf '%s\n' ${author_list} | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle | awk '{printf $1}')    
+    select_work $author_id
+
 }
 search_tag(){ #non functional
     echo "input tag name"
-    read -p ":: " tag_name
+    read -p "> " tag_name
     tag_list_untreated=$(curl -s https://archiveofourown.org/tags/search?tag_search%5Bname%5D=$tag_name&tag_search%5Bsort_direction%5D=asc&commit=Search+Tags |grep -Eoi '"/works[^\"]+"') 
     tag_list_sanitised=$(echo $tag_list_untreated |sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/users\///g') #removes any unwanted strings from the list
     if [tag_list_sanitised != " "];then
@@ -59,47 +50,29 @@ search_work(){ #non functional
 }
 ### SELECT FUNCTIONS ###
 select_work(){ #functional
-    work_list_untreated=$(curl -s https://archiveofourown.org/users/$author_id/works | grep -Eoi '"/works[^\"]+/')
-    work_list_treated=$( echo $work_list_untreated | sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ' |sed 's/chapters//g' |sed 's/works//g')
+    work_list=$(curl -s https://archiveofourown.org/users/$author_id/works | grep -Eoi '/works/[0-9]+">[^<]+'|sed 's/\"//g'|sed 's/works//g'|sed 's/ /_/g'|sed 's/\/\///g'| sed 's/</ /g'|tr '\n' ' ')
+    #creates a list and sanitises the output into rows on this format "[number]>work_name"
+    work_id_raw=$(printf '%s\n' ${work_list} | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle |awk '{printf $1}')
+    work_id=$(echo $work_id_raw |sed 's/>/ /g' |cut -d ' ' -f 1)
+    echo "selected work $work_id_raw with $work_id as its id"
+    Pmode=$(printf '%s\n' "Read" "Download" "Back" | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle)
+    case $Pmode in
+        Read)  
+            select_chapter $work_id;;
+        Download) 
+            dl_work $work_id;;
+        Back)
+            search_author;;
+        *)
+            error;;
+    esac
 
-    inc=1
-    for i in $work_list_treated; do # really slow and inefficient but it works
-        work_name_temp=$(curl -s https://archiveofourown.org/works/$i | grep -oP '<a href="/works/[0-9]+">[\s\S]+</a>' | sed 's/<a href="\/works//g' | sed 's/<\/a>//g'|tr '">' ' ')
-        echo $inc $work_name_temp
-        inc=$((inc+1))
-    done
-    echo "select the work"
-    echo "type 'q' to quit"
-    read -p ":: " arg
-    while [ $arg != "q" ]; do
-        if [ $arg -gt $inc ]; then
-             error j
-        else
-            echo "1.read 2.download 3.back"
-            read -p ":: " arg2
-            case $arg2 in
-                1)
-                    work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
-                    select_chapter $work_id
-                    ;;
-                2)
-                    work_id=$(echo $work_list_treated | cut -d ' ' -f $arg)
-                    dl_work $work_id
-                    ;;
-                3)
-                    search_author
-                    ;;
-                *)
-                     error j
-                    ;;
-            esac
-        fi
-    done
 }
 select_chapter(){ #future me this is very redundant and bloated please find a way to clean it up
     work_id=$1
-    chapter_list_id=$(curl -s https://archiveofourown.org/works/$work_id/navigate |grep -Eoi 'chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g'| sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | tr '">' ' '| cut -d ' ' -f 1 | tr '\n' ' ' |sed 's/\///g')
-    chapter_list_names=$(curl -s https://archiveofourown.org/works/$work_id/navigate |grep -Eoi 'chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g'| sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | tr '">' ' '| cut -d ' ' -f 4- | tr ' ' '_')
+    chapter_raw=$(curl -s https://archiveofourown.org/works/$work_id/navigate |grep -Eoi 'chapters/[0-9]+">[0-9]+. [^<]+</a> <span class="datetime">[^<]+' | sed 's/<li><a href="\/works//g'| sed 's/<\/a> <span class="datetime">//g' | sed 's/<\/li>//g' | sed 's/chapters//g' | tr '">' ' ')
+    chapter_list_id=$(echo $chapter_raw | cut -d ' ' -f 1 | tr '\n' ' ' |sed 's/\///g')
+    chapter_list_names=$(echo $chapter_raw| cut -d ' ' -f 4- | tr ' ' '_')
     
     inc=1
     for i in $chapter_list_names; do
@@ -177,15 +150,13 @@ case $arg in
         search_author;;
     Tag) 
         search_tag;;
-    
     Help)
         echo "availiable options : w,t,a,h,q
         -r : resume last chapter
         -w : search for a work
         -t : search for a tag
         -a : search for an author
-        -h : help"
-        ;;
+        -h : help";;
     Quit)
         exit 1;;
     Test) # DLdebug
@@ -193,5 +164,5 @@ case $arg in
         dl_work 41540862
         ;;
     *)
-        echo "invalid input";;
+        error;;
 esac
