@@ -3,22 +3,9 @@
 menu_select(){ #creates a menu based on the function that calls it 
     #only for prototypyng/future use 
     echo "select $1"
-    inc=1 # cut -d ' ' -f 0 is the first element(empty in this case) in the list so the first element is 1
-    for i in $2; do #iterates through the list
-        echo $inc,$i
-        inc=$((inc+1))
-    done
-    echo "type the corresponding number to browse the $1"
-    echo "type 'q' to quit"
-    read -p ":: " arg
-    while [ $arg != "q" ]; do
-        if [ $arg -gt $inc ]; then
-            echo "invalid input"
-        else
-            $3=$(echo $2 | cut -d ' ' -f $arg)
-            $4
-        fi
-    done
+    ans1=$(printf '%s\n' "${$2}" | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle | awk '{printf $1}')
+    # cut -d ' ' -f 0 is the first element(empty in this case) in the list so the first element is 1
+    $3 $ans1
 
 }
 ###MINI FUNCTIONS###
@@ -26,7 +13,7 @@ quit(){ #functional
     echo "exiting"
     exit 0
 }
-error(){ #functional
+ error (){ #functional
     echo "invalid input"
     exit 1
 }
@@ -34,20 +21,15 @@ error(){ #functional
 ### SEARCH FUNCTIONS ###
 search_author(){ #functional
     echo "input author name"
-    read -p ":: " author_name
+    read -p "> " author_name
     author_list_untreated=$(curl -s https://archiveofourown.org/people/search?people_search%5Bname%5D=$author_name |grep -Eoi '"/users[^\"]+"' |sed 's/\"//g'|tr ' ' '\n' |tr '/' '\n'| sort -u |tr '\n' ' ') 
     author_list_treated=$(echo $author_list_untreated | sed 's/users//g'|sed 's/login//g' |sed 's/password//g'|sed 's/new//g' | sed 's/pseuds//g') 
-        inc=1 
-        for i in $author_list_treated; do #iterates through the list
-            echo $inc,$i
-            inc=$((inc+1))
-        done
-        echo "select author"
-        echo "type 'q' to quit"
-        read -p ":: " arg
+    echo $author_list_treated $author_list_untreated
+    ans1=$(printf '%s\n' ${author_list_treated} | fzf --color='fg:111,info:159,border:134' --border --height=10% --cycle | awk '{printf $1}')    
+    select_work $ans1
         while [ $arg != "q" ]; do
             if [ $arg -gt $inc ]; then
-                error
+                 error j
             else
                 author_id=$(echo $author_list_treated | cut -d ' ' -f $arg)
                 select_work $author_id                 
@@ -91,7 +73,7 @@ select_work(){ #functional
     read -p ":: " arg
     while [ $arg != "q" ]; do
         if [ $arg -gt $inc ]; then
-            error
+             error j
         else
             echo "1.read 2.download 3.back"
             read -p ":: " arg2
@@ -108,7 +90,7 @@ select_work(){ #functional
                     search_author
                     ;;
                 *)
-                    error
+                     error j
                     ;;
             esac
         fi
@@ -129,7 +111,7 @@ select_chapter(){ #future me this is very redundant and bloated please find a wa
     read -p ":: " arg
     while [ $arg != "q" ]; do
         if [ $arg -gt $inc ]; then
-            error
+             error j
         else
             chapter_id=$(echo $chapter_list_id | cut -d ' ' -f $arg)
             chapter_name=$(echo $chapter_list_names | cut -d ' ' -f $arg)
@@ -183,43 +165,33 @@ dl_chapter(){ #non functionnal, requiresnuch more work to dl specific chapters a
 }
 
 ### START MENU ###
-echo "Ao3-S-cli"
-echo "
-    ==========
-    | w/ork  |
-    | t/ag   |
-    | a/uthor|
-    | h/elp  |
-    | q/uit  |
-    ==========
-"
-read -p ":: " arg
-while [ $arg != "q" ]; do
-    case $arg in
-        r)
-            resume;;
-        a) 
-            search_author;;
-        t) 
-            search_tag;;
-        w)
-            search_work;;
-        h)
-            echo "availiable options : w,t,a,h,q"
-            echo "-r : resume last chapter"
-            echo "-w : search for a work"
-            echo "-t : search for a tag"
-            echo "-a : search for an author"
-            echo "-h : help"
-            ;;
-        q)
-            echo ""
-            exit 1;;
-        z) # DLdebug
-            echo "test"
-            dl_work 41540862
-            ;;
-        *)
-            echo "invalid input";;
-    esac
-done
+echo "Search for"
+arg=$(printf '%s\n' "Work" "Author" "Tag" "Resume" "Help" "Quit" "Test" |fzf  --color='fg:111,info:159,border:134' --border --height=10% | awk '{print $1}')
+case $arg in
+    Resume)
+        resume;;
+    Work)
+        search_work;;
+    
+    Author) 
+        search_author;;
+    Tag) 
+        search_tag;;
+    
+    Help)
+        echo "availiable options : w,t,a,h,q
+        -r : resume last chapter
+        -w : search for a work
+        -t : search for a tag
+        -a : search for an author
+        -h : help"
+        ;;
+    Quit)
+        exit 1;;
+    Test) # DLdebug
+        echo "test"
+        dl_work 41540862
+        ;;
+    *)
+        echo "invalid input";;
+esac
